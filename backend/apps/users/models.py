@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from django.utils import timezone
 
 from .enums import Role
 from .managers import UserManager
@@ -10,22 +11,33 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=Role.choices, default=Role.STUDENT)
     groups = models.ManyToManyField(
         Group,
-        related_name='custom_user_set',  # changed from default `user_set`
+        related_name="custom_user_set",  # changed from default `user_set`
         blank=True,
-        help_text='The groups this user belongs to.',
-        verbose_name='groups',
+        help_text="The groups this user belongs to.",
+        verbose_name="groups",
     )
     user_permissions = models.ManyToManyField(
         Permission,
-        related_name='permissions',
+        related_name="permissions",
         blank=True,
-        help_text='Specific permissions for this user.',
-        verbose_name='user permissions',
+        help_text="Specific permissions for this user.",
+        verbose_name="user permissions",
     )
     father_name = models.CharField(max_length=10, blank=True, null=True)
-
 
     objects = UserManager()
 
     def __str__(self):
         return f"{self.username} ({self.role})"
+
+
+class PasswordResetOTP(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return timezone.now() > self.created_at + timezone.timedelta(minutes=10)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.otp}"

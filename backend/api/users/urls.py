@@ -1,6 +1,9 @@
 from django.urls import path
-from .viewsets import RegisterView, VerifyEmailView
+
+from .viewsets import (RegisterView, RequestOTPResetView,
+                       ResetPasswordWithOTPView, VerifyEmailView)
 
 urlpatterns = [
-    path('register/', RegisterView.as_view()),
-    path('verify-email/<uidb64>/<token>/', VerifyEmailView.as_view(), name='verify-email'),]
+    path("otp/request-reset/", RequestOTPResetView.as_view()),
+    path("otp/reset-password/", ResetPasswordWithOTPView.as_view()),
+]

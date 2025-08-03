@@ -19,7 +19,6 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
 
-
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
@@ -32,7 +31,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "father_name",
-            "role",
         ]
 
     def create(self, validated_data):
@@ -44,5 +42,19 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         user = self.user
-        data['role'] = user.role
+        data["role"] = user.role
         return data
+
+
+class RequestOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordWithOTPSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_new_password(self, value):
+        # Optional: add password strength validation
+        return value
