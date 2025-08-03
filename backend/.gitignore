@@ -1,0 +1,67 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django-specific
+*.log
+*.pot
+*.pyc
+*.pyo
+db.sqlite3
+media/
+staticfiles/
+static/
+local_settings.py
+
+# Migrations (optional to ignore)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Environment & virtualenv
+.env
+.venv/
+env/
+venv/
+ENV/
+*.env.*
+
+# VSCode, PyCharm, editors
+.vscode/
+.idea/
+*.swp
+
+# Unit test / coverage
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.tox/
+.nox/
+
+# mypy, pyright, pytype, pyre
+.mypy_cache/
+.pytype/
+.pyre/
+.dmypy.json
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+MANIFEST
+
+# Others
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
