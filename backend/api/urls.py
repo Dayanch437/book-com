@@ -15,4 +15,5 @@ urlpatterns = [
         "verify-email/<uidb64>/<token>/", VerifyEmailView.as_view(), name="verify-email"
     ),
     path("users/", include("api.users.urls")),
+    path("", include("api.competition.urls")),
 ]
