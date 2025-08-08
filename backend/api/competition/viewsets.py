@@ -14,7 +14,6 @@ class CompetitionViewSet(viewsets.ModelViewSet):
         qs = qs.filter(created_by=self.request.user)
         return qs
 
-
 class CompetitionStudentViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
@@ -29,10 +28,14 @@ class CompetitionRegistrationViewSet(viewsets.ModelViewSet):
     queryset = CompetitionRegistration.objects.all()
     serializer_class = CompetitionRegistrationSerializer
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(student=self.request.user)
+        return qs
+
 class StudentCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()
     serializer_class = StudentCommentSerializer
-
 
 class MyCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()

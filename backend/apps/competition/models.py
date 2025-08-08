@@ -2,7 +2,7 @@ from django.db import models
 
 from apps.users.models import User
 from apps.utils.models import BaseModel
-
+from .enums import BookCategory
 
 class Competition(BaseModel):
     title = models.CharField(max_length=255)
@@ -18,11 +18,14 @@ class Competition(BaseModel):
 
 
 class Book(BaseModel):
+    category = models.CharField(max_length=255, choices=BookCategory.choices)
     competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name="books"
     )
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to="competition_books/")
+    author = models.CharField(max_length=255)
+
 
     def __str__(self):
         return self.title
