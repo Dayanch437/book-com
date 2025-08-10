@@ -10,11 +10,12 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from apps.users.models import PasswordResetOTP, User
+from rest_framework.viewsets import ModelViewSet
+from apps.users.models import PasswordResetOTP, User, Department, Faculty
+from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import (RequestOTPSerializer, ResetPasswordWithOTPSerializer,
-                          UserRegisterSerializer)
+                          UserRegisterSerializer, UserSerializer, DepartmentSerializer, FacultySerializer)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -121,3 +122,54 @@ class ResetPasswordWithOTPView(APIView):
         otp_record.delete()  # optional: cleanup
 
         return Response({"detail": "Password reset successful."}, status=200)
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class DepartmentViewSet(ModelViewSet):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
+    http_method_names = ["get"]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['name', 'faculty']
+
+
+class FacultyViewSet(ModelViewSet):
+    queryset = Faculty.objects.all()
+    serializer_class = FacultySerializer
+    http_method_names = ["get"]
+
+
+# views.py
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework_simplejwt.exceptions import TokenError
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_token(request):
+    token = request.data.get('token', None)
+
+    if not token:
+        return Response(
+            {'detail': 'Token not provided'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        # This will raise an exception if token is invalid
+        AccessToken(token)
+        return Response(
+            {'detail': 'Token is valid'},
+            status=status.HTTP_200_OK
+        )
+    except TokenError as e:
+        return Response(
+            {'detail': 'Token is invalid or expired'},
+            status=status.HTTP_401_UNAUTHORIZED
+        )

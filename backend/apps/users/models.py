@@ -1,9 +1,23 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
+from django.db.models import ForeignKey
 from django.utils import timezone
-
+from django.db import models
 from .enums import Role
 from .managers import UserManager
+
+class Faculty(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Department(models.Model):
+    name = models.CharField(max_length=100)
+    faculty = models.ForeignKey(Faculty, on_delete=models.CASCADE,related_name='departments')
+
+    def __str__(self):
+        return self.name
 
 
 class User(AbstractUser):
@@ -24,6 +38,9 @@ class User(AbstractUser):
         verbose_name="user permissions",
     )
     father_name = models.CharField(max_length=10, blank=True, null=True)
+    faculty = ForeignKey(Faculty, on_delete=models.CASCADE,null=True, blank=True)
+    date_joined = models.DateTimeField(default=timezone.now)
+    department = ForeignKey(Department, on_delete=models.CASCADE,null=True, blank=True)
 
     objects = UserManager()
 

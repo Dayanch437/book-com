@@ -1,8 +1,8 @@
 from django.db import models
-
 from apps.users.models import User
 from apps.utils.models import BaseModel
 from .enums import BookCategory
+
 
 class Competition(BaseModel):
     title = models.CharField(max_length=255)
@@ -12,7 +12,6 @@ class Competition(BaseModel):
     )
     start_date = models.DateField()
     end_date = models.DateField()
-
     def __str__(self):
         return self.title
 
@@ -39,8 +38,8 @@ class CompetitionRegistration(BaseModel):
         Competition, on_delete=models.CASCADE, related_name="registrations"
     )
     student_cart = models.CharField(max_length=6)
-
-
+    name = models.CharField(max_length=255)
+    surname = models.CharField(max_length=255)
 
     class Meta:
         unique_together = ("student", "competition")

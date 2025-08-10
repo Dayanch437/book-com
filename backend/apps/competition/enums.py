@@ -27,3 +27,7 @@ class BookCategory(models.TextChoices):
     HORROR = "Horror"
     ADVENTURE = "Adventure"
     CLASSICS = "Classics"
+
+class Status(models.TextChoices):
+    REGISTERED = "Registered"
+    UNREGISTERED = "Unregistered"

@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import User
+from .models import User,Department,Faculty
 
 
 class CustomUserAdmin(UserAdmin):
@@ -9,7 +9,7 @@ class CustomUserAdmin(UserAdmin):
         (None, {"fields": ("username", "password")}),
         (
             "Personal info",
-            {"fields": ("first_name", "last_name", "father_name", "email", "role")},
+            {"fields": ("first_name", "last_name", "father_name", "email", "role","faculty","department")},
         ),
         (
             "Permissions",
@@ -46,3 +46,5 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(Department)
+admin.site.register(Faculty)

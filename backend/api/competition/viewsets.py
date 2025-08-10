@@ -1,7 +1,8 @@
+from poetry.console.commands import self
 from rest_framework import viewsets
 from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment
 from .serializers import CompetitionSerializer, BookSerializer, CompetitionRegistrationSerializer, \
-    StudentCommentSerializer
+    StudentCommentSerializer,CompetitionTeacherSerializer
 from apps.utils.permissions import IsTeacherOrAdmin
 
 class CompetitionViewSet(viewsets.ModelViewSet):
@@ -44,3 +45,14 @@ class MyCommentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         return StudentComment.objects.filter(student=user)
+
+class CompetitionTeacherViewSet(viewsets.ModelViewSet):
+
+    queryset = CompetitionRegistration.objects.all()
+    serializer_class =  CompetitionTeacherSerializer
+    http_method_names = ['get']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(competition__created_by=self.request.user)
+        return qs

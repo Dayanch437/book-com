@@ -2,34 +2,57 @@ from rest_framework.serializers import ModelSerializer
 from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment
 from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
-class CompetitionSerializer(ModelSerializer):
-    class Meta:
-        model = Competition
-        fields = ['id','title','description','created_by','start_date','end_date']
-        extra_kwargs = {
-            "created_by": {"required": False},
-        }
-
-    def create(self, validated_data):
-        user = self.context['request'].user
-        competition = Competition.objects.create(created_by=user,**validated_data)
-        return competition
-
-
+from rest_framework import serializers
 class BookSerializer(ModelSerializer):
     class Meta:
         model = Book
         fields = ['id','competition','title','file']
+
+class CompetitionSerializer(ModelSerializer):
+    books = BookSerializer(many=True, read_only=True)
+    full_name = serializers.SerializerMethodField()
+    is_registered = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Competition
+        fields = [
+            'id', 'title', 'books', 'description',
+            'created_by', 'full_name', 'start_date', 'end_date',
+            'is_registered'
+        ]
+        extra_kwargs = {
+            "created_by": {"required": False},
+        }
+
+    def get_is_registered(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return CompetitionRegistration.objects.filter(
+                student=request.user,
+                competition=obj
+            ).exists()
+        return False
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        competition = Competition.objects.create(created_by=user, **validated_data)
+        return competition
+
+    def get_full_name(self, obj):
+        return f"{obj.created_by.first_name} {obj.created_by.last_name}"
+
+
 
 class CompetitionRegistrationSerializer(ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
         try:
-            return CompetitionRegistration.objects.create(
+            competition_register = CompetitionRegistration.objects.create(
                 student=user,
                 **validated_data
             )
+            return competition_register
         except IntegrityError:
             raise ValidationError({"detail": "You have already registered for this competition."})
 
@@ -39,8 +62,6 @@ class CompetitionRegistrationSerializer(ModelSerializer):
         extra_kwargs = {
             "student": {"required": False, "read_only": True},
         }
-
-
 
 class StudentCommentSerializer(ModelSerializer):
     def create(self, validated_data):
@@ -76,3 +97,8 @@ class StudentCommentSerializer(ModelSerializer):
             "student": {"required": False},
         }
 
+class CompetitionTeacherSerializer(ModelSerializer):
+
+    class Meta:
+        model = CompetitionRegistration
+        fields = ["id","student","name","surname","student_cart"]
