@@ -185,12 +185,7 @@ export default function CompetitionDetail() {
             </div>
           </div>
           
-          {competition.is_registered && (
-            <div className="flex items-center px-3 py-1 text-sm font-medium text-white bg-green-500 rounded-full">
-              <FiCheckCircle className="mr-1" />
-              Registered
-            </div>
-          )}
+        
         </div>
         
         <p className="text-gray-700 whitespace-pre-line">

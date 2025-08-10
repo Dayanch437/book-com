@@ -26,10 +26,9 @@ export default function Sidebar() {
 
   // List of navigation items
   const navItems = [
-    { path: '/', name: 'Home', icon: <FiHome className="mr-2" /> },
     { path: '/competitions', name: 'Competitions', icon: <FiBook className="mr-2" /> },
     { path: '#', name: 'Achievements', icon: <FiAward className="mr-2" /> },
-    { path: '/profile', name: 'Profile', icon: <FiUser className="mr-2" /> },
+    { path: '#', name: 'Profile', icon: <FiUser className="mr-2" /> },
   ];
 
   return (
@@ -62,7 +61,7 @@ export default function Sidebar() {
         <div className="flex flex-col h-full p-4">
           {/* Logo */}
           <div className="p-4 mb-8">
-            <h1 className="text-xl font-bold text-indigo-600">BookCompetitions</h1>
+            <a href='/' className="text-xl font-bold text-indigo-600">BookCompetitions</a>
           </div>
 
           {/* Navigation Items */}

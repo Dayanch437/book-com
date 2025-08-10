@@ -17,7 +17,7 @@ export default function Register() {
   const [faculties, setFaculties] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
@@ -30,7 +30,7 @@ export default function Register() {
         const data = await response.json();
         setFaculties(data);
       } catch (err) {
-        setError(err.message);
+        setErrors({general: err.message});
       }
     };
     fetchFaculties();
@@ -46,7 +46,7 @@ export default function Register() {
           const data = await response.json();
           setDepartments(data);
         } catch (err) {
-          setError(err.message);
+          setErrors({general: err.message});
         }
       } else {
         setDepartments([]);
@@ -61,18 +61,42 @@ export default function Register() {
       ...prev,
       [name]: value
     }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = {...prev};
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setErrors({});
     setSuccess('');
 
     try {
-      // Validate passwords match
+      // Frontend validation
+      const newErrors = {};
+      
       if (formData.password !== formData.confirmPassword) {
-        throw new Error('Passwords do not match');
+        newErrors.confirmPassword = 'Passwords do not match';
+      }
+      
+      if (!formData.faculty || formData.faculty === '0') {
+        newErrors.faculty = 'Please select a faculty';
+      }
+      
+      if (!formData.department || formData.department === '0') {
+        newErrors.department = 'Please select a department';
+      }
+
+      if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        setIsLoading(false);
+        return;
       }
 
       // Prepare data for API (remove confirmPassword)
@@ -89,24 +113,43 @@ export default function Register() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        // Handle backend validation errors in the format {"field": ["error1", "error2"]}
+        if (typeof data === 'object' && data !== null) {
+          const backendErrors = {};
+          Object.entries(data).forEach(([field, messages]) => {
+            // Join array of messages into a single string
+            backendErrors[field] = Array.isArray(messages) ? messages.join(' ') : messages;
+          });
+          setErrors(backendErrors);
+        } else if (data.message) {
+          setErrors({general: data.message});
+        } else if (data.detail) {
+          setErrors({general: data.detail});
+        } else {
+          setErrors({general: 'Registration failed. Please try again.'});
+        }
+        return;
       }
 
-      if (data.status === 'ok') {
-        setSuccess(data.message);
-        // Redirect to login after 3 seconds
-        setTimeout(() => {
-          navigate('/');
-        }, 3000);
-      } else {
-        throw new Error(data.message || 'Registration failed');
-      }
+      setSuccess(data.message || 'Registration successful!');
+      setTimeout(() => navigate('/'), 3000);
       
     } catch (err) {
-      setError(err.message);
+      setErrors({general: err.message || 'An unexpected error occurred'});
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to render error messages for a field
+  const renderError = (fieldName) => {
+    if (!errors[fieldName]) return null;
+    return (
+      <p className="mt-1 text-sm text-red-600">
+        <FiAlertCircle className="inline mr-1" />
+        {errors[fieldName]}
+      </p>
+    );
   };
 
   return (
@@ -117,10 +160,10 @@ export default function Register() {
           <p className="text-gray-600 mt-1">Get started with your account</p>
         </div>
 
-        {error && (
+        {errors.general && (
           <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 rounded-lg">
             <FiAlertCircle className="mr-2 flex-shrink-0" />
-            <span>{error}</span>
+            <span>{errors.general}</span>
           </div>
         )}
 
@@ -147,10 +190,11 @@ export default function Register() {
                 value={formData.username}
                 onChange={handleChange}
                 placeholder="Enter username"
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`w-full pl-10 pr-3 py-2.5 text-sm border ${errors.username ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
                 required
               />
             </div>
+            {renderError('username')}
           </div>
 
           <div>
@@ -168,10 +212,11 @@ export default function Register() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="your@email.com"
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`w-full pl-10 pr-3 py-2.5 text-sm border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
                 required
               />
             </div>
+            {renderError('email')}
           </div>
 
           <div>
@@ -189,11 +234,12 @@ export default function Register() {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`w-full pl-10 pr-3 py-2.5 text-sm border ${errors.password ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
                 required
                 minLength="6"
               />
             </div>
+            {renderError('password')}
           </div>
 
           <div>
@@ -211,11 +257,12 @@ export default function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
-                className="w-full pl-10 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                className={`w-full pl-10 pr-3 py-2.5 text-sm border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
                 required
                 minLength="6"
               />
             </div>
+            {renderError('confirmPassword')}
           </div>
 
           <div>
@@ -229,9 +276,10 @@ export default function Register() {
               value={formData.first_name}
               onChange={handleChange}
               placeholder="First name"
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2.5 text-sm border ${errors.first_name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
               required
             />
+            {renderError('first_name')}
           </div>
 
           <div>
@@ -245,9 +293,10 @@ export default function Register() {
               value={formData.last_name}
               onChange={handleChange}
               placeholder="Last name"
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2.5 text-sm border ${errors.last_name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
               required
             />
+            {renderError('last_name')}
           </div>
 
           <div>
@@ -261,9 +310,10 @@ export default function Register() {
               value={formData.father_name}
               onChange={handleChange}
               placeholder="Father's name"
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2.5 text-sm border ${errors.father_name ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
               required
             />
+            {renderError('father_name')}
           </div>
 
           <div>
@@ -275,7 +325,7 @@ export default function Register() {
               name="faculty"
               value={formData.faculty}
               onChange={handleChange}
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2.5 text-sm border ${errors.faculty ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
               required
             >
               <option value="0">Select Faculty</option>
@@ -283,6 +333,7 @@ export default function Register() {
                 <option key={faculty.id} value={faculty.id}>{faculty.name}</option>
               ))}
             </select>
+            {renderError('faculty')}
           </div>
 
           <div>
@@ -294,7 +345,7 @@ export default function Register() {
               name="department"
               value={formData.department}
               onChange={handleChange}
-              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+              className={`w-full px-3 py-2.5 text-sm border ${errors.department ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500`}
               required
               disabled={!formData.faculty || departments.length === 0}
             >
@@ -303,12 +354,13 @@ export default function Register() {
                 <option key={dept.id} value={dept.id}>{dept.name}</option>
               ))}
             </select>
+            {renderError('department')}
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 transition flex justify-center items-center"
+            className="w-full px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:ring-offset-1 transition flex justify-center items-center disabled:opacity-75"
           >
             {isLoading ? (
               <>

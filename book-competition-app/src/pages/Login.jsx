@@ -34,7 +34,7 @@ export default function Login() {
         const isValid = await verifyToken(token);
         if (isValid) {
           setSuccess('Already logged in. Redirecting...');
-          setTimeout(() => navigate('/dashboard'), 1000);
+          setTimeout(() => navigate('/competitions'), 1000);
           return;
         } else {
           localStorage.removeItem('accessToken');
@@ -76,7 +76,7 @@ export default function Login() {
       localStorage.setItem('refreshToken', data.refresh);
 
       setSuccess('Login successful! Redirecting...');
-      setTimeout(() => navigate('/dashboard'), );
+      setTimeout(() => navigate('/competitions'), );
 
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
