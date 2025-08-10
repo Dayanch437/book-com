@@ -1,63 +1,290 @@
-// src/pages/Dashboard.jsx
-import { useState } from 'react';
-import CompetitionList from '../components/CompetitionList';
-import ActiveCompetitions from '../components/ActiveCompetitions';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiLoader, FiAlertCircle, FiCheckCircle, FiBook, FiArrowLeft } from 'react-icons/fi';
 
-// Define mock data inside the component file
-const mockCompetitions = [
-  {
-    id: 1,
-    title: "Summer Reading Challenge",
-    description: "Read 5 books over the summer and win exciting prizes!",
-    created_by: "dayanch",
-    start_date: "2025-06-01",
-    end_date: "2025-08-31"
-  },
-  {
-    id: 2,
-    title: "Poetry Contest",
-    description: "Submit your original poems for a chance to be published in our annual anthology.",
-    created_by: "booklover42",
-    start_date: "2025-08-01",
-    end_date: "2025-09-15"
-  },
-  {
-    id: 3,
-    title: "Classic Literature Review",
-    description: "Write reviews of classic literature for scholarship opportunities.",
-    created_by: "literature_prof",
-    start_date: "2025-07-15",
-    end_date: "2025-10-01"
+function CompetitionList({ competitions, onRegister }) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (competitionId, e) => {
+    // Don't navigate if the click was on the register button
+    if (!e.target.closest('button')) {
+      navigate(`/competitions/${competitionId}`);
+    }
+  };
+
+  return (
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {competitions.map(competition => (
+        <div 
+          key={competition.id} 
+          className="p-6 bg-white rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={(e) => handleCardClick(competition.id, e)}
+        >
+          <h3 className="text-lg font-semibold text-gray-800">{competition.title}</h3>
+          <p className="mt-2 text-gray-600">{competition.description}</p>
+          
+          <div className="mt-4 text-sm text-gray-500">
+            <p>Organizer: {competition.full_name || 'Unknown'}</p>
+            <p>Dates: {new Date(competition.start_date).toLocaleDateString()} - {new Date(competition.end_date).toLocaleDateString()}</p>
+          </div>
+          
+          {competition.books.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-medium text-gray-700 mb-2">Required Books:</h4>
+              <ul className="space-y-1">
+                {competition.books.map(book => (
+                  <li key={book.id} className="flex items-center">
+                    <FiBook className="mr-2 text-indigo-500" />
+                    <span>{book.title}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {competition.is_registered ? (
+            <div className="w-full mt-4 px-4 py-2 text-sm font-medium text-center text-white bg-green-500 rounded-lg">
+              Registered
+            </div>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRegister(competition.id);
+              }}
+              className="w-full mt-4 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            >
+              Register
+            </button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+async function verifyToken(token) {
+  try {
+    const response = await fetch('http://127.0.0.1:8000/api/token/verify/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ token })
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('Token verification failed:', error);
+    return false;
   }
-];
+}
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState('all'); // 'all' or 'my'
+  const [competitions, setCompetitions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [registrationData, setRegistrationData] = useState({
+    competitionId: null,
+    studentCart: ''
+  });
+  const [showRegistrationForm, setShowRegistrationForm] = useState(false);
+  const [registrationStatus, setRegistrationStatus] = useState({ success: false, message: '' });
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+          navigate('/');
+          return;
+        }
+
+        // Verify token first
+        const isTokenValid = await verifyToken(token);
+        if (!isTokenValid) {
+          localStorage.removeItem('accessToken');
+          navigate('/');
+          return;
+        }
+
+        // Fetch competitions if token is valid
+        const response = await fetch('http://127.0.0.1:8000/api/competitions-student/', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('accessToken');
+            navigate('/login');
+            return;
+          }
+          throw new Error(`Failed to load competitions: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setCompetitions(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [navigate]);
+
+  const handleRegisterClick = (competitionId) => {
+    setRegistrationData({ ...registrationData, competitionId });
+    setShowRegistrationForm(true);
+  };
+
+  const handleRegistrationSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setRegistrationStatus({ success: false, message: '' });
+
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) throw new Error('Authentication required');
+
+      // Verify token before registration
+      const isTokenValid = await verifyToken(token);
+      if (!isTokenValid) {
+        localStorage.removeItem('accessToken');
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch('http://127.0.0.1:8000/api/competition/register/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          competition: registrationData.competitionId,
+          student_cart: registrationData.studentCart
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || data.message || 'Registration failed');
+      }
+
+      setRegistrationStatus({ success: true, message: 'Registration successful!' });
+      setTimeout(() => {
+        setShowRegistrationForm(false);
+        setRegistrationData({ competitionId: null, studentCart: '' });
+      }, 2000);
+
+    } catch (err) {
+      setRegistrationStatus({ success: false, message: err.message || 'Failed to register for competition' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (showRegistrationForm) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <div className="container px-4 py-8 mx-auto max-w-md">
+          <button 
+            onClick={() => setShowRegistrationForm(false)}
+            className="flex items-center mb-6 text-indigo-600 hover:text-indigo-800"
+          >
+            <FiArrowLeft className="mr-2" />
+            Back to Competitions
+          </button>
+
+          <div className="p-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Competition Registration</h2>
+            
+            {registrationStatus.message && !registrationStatus.success && (
+              <div className="flex items-center p-3 mb-4 text-sm text-red-600 bg-red-50 rounded-lg">
+                <FiAlertCircle className="mr-2 flex-shrink-0" />
+                <span>{registrationStatus.message}</span>
+              </div>
+            )}
+
+            {registrationStatus.success && (
+              <div className="flex items-center p-3 mb-4 text-sm text-green-600 bg-green-50 rounded-lg">
+                <FiCheckCircle className="mr-2 flex-shrink-0" />
+                <span>{registrationStatus.message}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="studentCart" className="block mb-2 text-sm font-medium text-gray-700">
+                  Student ID Card Number
+                </label>
+                <input
+                  id="studentCart"
+                  type="text"
+                  value={registrationData.studentCart}
+                  onChange={(e) => setRegistrationData({...registrationData, studentCart: e.target.value})}
+                  placeholder="Enter your student ID card number"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition flex justify-center items-center"
+              >
+                {loading ? (
+                  <>
+                    <FiLoader className="w-4 h-4 mr-2 animate-spin" />
+                    Registering...
+                  </>
+                ) : (
+                  'Complete Registration'
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-     
-      
       <div className="container px-4 py-8 mx-auto">
-        <div className="flex mb-6 border-b border-gray-200">
-          <button
-            className={`px-4 py-2 font-medium ${activeTab === 'all' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('all')}
-          >
-            All Competitions
-          </button>
-          <button
-            className={`px-4 py-2 font-medium ${activeTab === 'my' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('my')}
-          >
-            My Competitions
-          </button>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800 mb-8">Available Competitions</h1>
 
-        {activeTab === 'all' ? (
-          <CompetitionList competitions={mockCompetitions} />
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <FiLoader className="w-8 h-8 text-indigo-500 animate-spin" />
+            <p className="mt-2 text-gray-600">Loading competitions...</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 text-red-500">
+            <FiAlertCircle className="w-8 h-8" />
+            <p className="mt-2">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 mt-4 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+            >
+              Try Again
+            </button>
+          </div>
         ) : (
-          <ActiveCompetitions />
+          <CompetitionList 
+            competitions={competitions} 
+            onRegister={handleRegisterClick} 
+          />
         )}
       </div>
     </div>
