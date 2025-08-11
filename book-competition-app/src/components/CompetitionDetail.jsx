@@ -142,7 +142,7 @@ export default function CompetitionDetail() {
     return (
       <div className="p-6 text-center">
         <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
-          Error: {error}
+          Error: {error}ChatGPT now has our smartest, fastest, most useful model yet, with thinking built in — so you get the best answer, every time.
         </div>
         <button 
           onClick={() => navigate('/competitions')}

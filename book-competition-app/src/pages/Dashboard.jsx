@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiLoader, FiAlertCircle, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
-import CompetitionList from '../components/CompetitionLIst';
+
+// Lazy load the CompetitionList
+const CompetitionList = lazy(() => import('../components/CompetitionLIst'));
 
 async function verifyToken(token) {
   try {
@@ -219,10 +221,12 @@ export default function Dashboard() {
             </button>
           </div>
         ) : (
-          <CompetitionList 
-            competitions={competitions} 
-            onRegister={handleRegisterClick} 
-          />
+          <Suspense fallback={<div className="flex justify-center py-12">Loading competitions...</div>}>
+            <CompetitionList 
+              competitions={competitions} 
+              onRegister={handleRegisterClick} 
+            />
+          </Suspense>
         )}
       </div>
     </div>
