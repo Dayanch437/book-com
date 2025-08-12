@@ -1,7 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiCalendar, FiUser, FiBook, FiDownload, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
+import { 
+  FiCalendar, 
+  FiUser, 
+  FiBook, 
+  FiDownload, 
+  FiCheckCircle, 
+  FiArrowLeft,
+  FiMessageSquare 
+} from 'react-icons/fi';
 
 export default function CompetitionDetail() {
   const { id } = useParams();
@@ -22,6 +30,10 @@ export default function CompetitionDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registrationStatus, setRegistrationStatus] = useState(null);
   const [studentCart, setStudentCart] = useState('');
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [isCommentLoading, setIsCommentLoading] = useState(false);
+  const [commentError, setCommentError] = useState(null);
 
   const getAuthToken = () => {
     const token = localStorage.getItem('accessToken');
@@ -50,7 +62,6 @@ export default function CompetitionDetail() {
           }
         );
 
-        // Transform API response to match expected format
         const apiData = response.data;
         setCompetition({
           id: apiData.id || 0,
@@ -78,6 +89,35 @@ export default function CompetitionDetail() {
 
     fetchCompetition();
   }, [id, navigate]);
+
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        setIsCommentLoading(true);
+        setCommentError(null);
+        const token = getAuthToken();
+        if (!token) return;
+
+        const response = await axios.get(
+          `http://127.0.0.1:8000/api/student-comments/?competition=${id}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            }
+          }
+        );
+
+        setComments(response.data || []);
+      } catch (err) {
+        setCommentError(err.response?.data?.detail || err.message);
+      } finally {
+        setIsCommentLoading(false);
+      }
+    };
+
+    fetchComments();
+  }, [id]);
 
   const handleRegister = async () => {
     try {
@@ -130,6 +170,37 @@ export default function CompetitionDetail() {
     }
   };
 
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsCommentLoading(true);
+      setCommentError(null);
+      const token = getAuthToken();
+      if (!token) return;
+
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/student-comments/',
+        {
+          competition: id,
+          comment: newComment
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      setComments([response.data, ...comments]);
+      setNewComment('');
+    } catch (err) {
+      setCommentError(err.response?.data?.detail || 'Failed to post comment');
+    } finally {
+      setIsCommentLoading(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-20">
@@ -142,7 +213,7 @@ export default function CompetitionDetail() {
     return (
       <div className="p-6 text-center">
         <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
-          Error: {error}ChatGPT now has our smartest, fastest, most useful model yet, with thinking built in — so you get the best answer, every time.
+          Error: {error}
         </div>
         <button 
           onClick={() => navigate('/competitions')}
@@ -185,7 +256,12 @@ export default function CompetitionDetail() {
             </div>
           </div>
           
-        
+          {competition.is_registered && (
+            <div className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">
+              <FiCheckCircle className="mr-1" />
+              Registered
+            </div>
+          )}
         </div>
         
         <p className="text-gray-700 whitespace-pre-line">
@@ -265,6 +341,65 @@ export default function CompetitionDetail() {
           </button>
         </div>
       )}
+
+      {/* Comments Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center">
+          <FiMessageSquare className="mr-2" />
+          Discussion ({comments.length})
+        </h2>
+
+        {/* Comment Form */}
+        {competition.is_registered && (
+          <form onSubmit={handleCommentSubmit} className="mb-6">
+            <div className="mb-3">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                rows="3"
+                placeholder="Share your thoughts about this competition..."
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isCommentLoading || !newComment.trim()}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
+            >
+              {isCommentLoading ? 'Posting...' : 'Post Comment'}
+            </button>
+            {commentError && (
+              <div className="mt-2 text-sm text-red-600">{commentError}</div>
+            )}
+          </form>
+        )}
+
+        {/* Comments List */}
+        {isCommentLoading && comments.length === 0 ? (
+          <div className="flex justify-center py-4">
+            <div className="w-8 h-8 border-t-2 border-b-2 border-indigo-500 rounded-full animate-spin"></div>
+          </div>
+        ) : comments.length > 0 ? (
+          <div className="space-y-4">
+            {comments.map(comment => (
+              <div key={comment.id} className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="font-medium text-gray-800">{comment.user_name || 'Anonymous'}</div>
+                  <div className="text-sm text-gray-500">
+                    {new Date(comment.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <p className="text-gray-700 whitespace-pre-line">{comment.comment}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-gray-500">
+            No comments yet. {competition.is_registered ? 'Be the first to share your thoughts!' : 'Register to participate in the discussion.'}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

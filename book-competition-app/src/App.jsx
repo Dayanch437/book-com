@@ -37,14 +37,12 @@ export default function App() {
           <Route path="/register" element={<Register />} />
 
           {/* Authenticated routes */}
-          <Route element={<AppLayout />}>
+            <Route element={<AppLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/competitions/:id" element={<CompetitionDetail />} />
             <Route path="/competitions" element={<CompetitionsPage />} />
-            <Route
-              path="/competitions/register/:id"
-              element={<CompetitionsPage />}
+            <Route path="/competitions/register/:id" element={<CompetitionsPage />}
             />
           </Route>
         </Routes>
