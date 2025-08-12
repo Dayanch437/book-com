@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiUser, FiMail, FiLock, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
+import { API_BASE_URL } from '../config';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -24,8 +25,8 @@ export default function Register() {
   // Fetch faculties on component mount
   useEffect(() => {
     const fetchFaculties = async () => {
-      try {
-        const response = await fetch('http://127.0.0.1:8000/api/users/faculty/');
+      try {     
+        const response = await fetch(`${API_BASE_URL}/api/users/faculty/`);
         if (!response.ok) throw new Error('Failed to fetch faculties');
         const data = await response.json();
         setFaculties(data);
@@ -41,7 +42,7 @@ export default function Register() {
     const fetchDepartments = async () => {
       if (formData.faculty > 0) {
         try {
-          const response = await fetch(`http://127.0.0.1:8000/api/users/departments/?faculty=${formData.faculty}`);
+          const response = await fetch(`${API_BASE_URL}/api/users/departments/?faculty=${formData.faculty}`);
           if (!response.ok) throw new Error('Failed to fetch departments');
           const data = await response.json();
           setDepartments(data);
@@ -102,10 +103,11 @@ export default function Register() {
       // Prepare data for API (remove confirmPassword)
       const { confirmPassword, ...apiData } = formData;
 
-      const response = await fetch('http://127.0.0.1:8000/api/auth/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+
         },
         body: JSON.stringify(apiData),
       });

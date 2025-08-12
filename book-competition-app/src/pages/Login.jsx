@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiUserPlus, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
-
+import { API_BASE_URL } from '../config';
 async function verifyToken(token) {
+
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/token/verify/', {
+    const response = await fetch(`${API_BASE_URL}/api/token/verify/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -54,7 +55,7 @@ export default function Login() {
     setSuccess('');
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/auth/login/', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 import { 
   FiCalendar, 
   FiUser, 
@@ -53,8 +54,7 @@ export default function CompetitionDetail() {
         if (!token) return;
 
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/competitions-student/${id}/`,
-          {
+          `${API_BASE_URL}/api/competitions-student/${id}/`,          {
             headers: {
               'Authorization': `Bearer ${token}`,
               'Content-Type': 'application/json',
@@ -99,7 +99,7 @@ export default function CompetitionDetail() {
         if (!token) return;
 
         const response = await axios.get(
-          `http://127.0.0.1:8000/api/student-comments/?competition=${id}`,
+          `${API_BASE_URL}/api/student-comments/?competition=${id}/`,
           {
             headers: {
               'Authorization': `Bearer ${token}`,
@@ -127,7 +127,7 @@ export default function CompetitionDetail() {
       if (!token) return;
 
       await axios.post(
-        'http://127.0.0.1:8000/api/competitions-student/',
+        `${API_BASE_URL}/api/competitions-student/`,          
         {
           competition: id,
           student_cart: studentCart
@@ -179,7 +179,7 @@ export default function CompetitionDetail() {
       if (!token) return;
 
       const response = await axios.post(
-        'http://127.0.0.1:8000/api/student-comments/',
+        `${API_BASE_URL}/api/student-comments/`,          
         {
           competition: id,
           comment: newComment

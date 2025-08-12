@@ -1,13 +1,14 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiLoader, FiAlertCircle, FiCheckCircle, FiArrowLeft } from 'react-icons/fi';
+import { API_BASE_URL } from '../config';
 
 // Lazy load the CompetitionList
 const CompetitionList = lazy(() => import('../components/CompetitionLIst'));
 
 async function verifyToken(token) {
   try {
-    const response = await fetch('http://127.0.0.1:8000/api/token/verify/', {
+    const response = await fetch(`${API_BASE_URL}/api/token/verify/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -51,8 +52,7 @@ export default function Dashboard() {
           navigate('/');
           return;
         }
-
-        const response = await fetch('http://127.0.0.1:8000/api/competitions-student/', {
+        const response = await fetch(`${API_BASE_URL}/api/competitions-student/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export default function Dashboard() {
         return;
       }
 
-      const response = await fetch('http://127.0.0.1:8000/api/competition/register/', {
+      const response = await fetch(`${API_BASE_URL}/api/competition/register/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
