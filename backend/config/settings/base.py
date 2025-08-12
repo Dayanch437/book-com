@@ -8,9 +8,15 @@ SECRET_KEY = "django-insecure-63rx=y*^wccgup!g&%mo9rtu4_6kts$q99&ex+)el9u2@&mal^
 DEBUG = True
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
 # CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:5173",  # React, Flutter Web etc.
+#     "http://localhost:5173",
 #     "http://127.0.0.1:8000",
+# ]
+
+# CSRF_TRUSTED_ORIGINS = [
+#     "http://34.55.178.211",
+#     "http://34.55.178.211:81",  # your frontend port
 # ]
 
 ALLOWED_HOSTS = ["*"]
@@ -19,9 +25,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-AUTH_USER_MODEL = "users.User"  
-
-
+AUTH_USER_MODEL = "users.User"
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -135,6 +139,10 @@ MEDIA_URL = "/media/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-# Console Email Backend
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "noreply@example.com"
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dayanchkemalovich@gmail.com'
+EMAIL_HOST_PASSWORD = 'ywqn eyvb ccsh ncbb '
+DEFAULT_FROM_EMAIL = 'dayanchkemalovich@gmail.com'
