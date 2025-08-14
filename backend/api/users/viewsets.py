@@ -8,14 +8,14 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status
-from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from apps.users.models import PasswordResetOTP, User, Department, Faculty
 from django_filters.rest_framework import DjangoFilterBackend
 
+
 from .serializers import (RequestOTPSerializer, ResetPasswordWithOTPSerializer,
-                          UserRegisterSerializer, UserSerializer, DepartmentSerializer, FacultySerializer)
+                          UserRegisterSerializer, UserSerializer, DepartmentSerializer, FacultySerializer,)
 
 
 class RegisterView(generics.CreateAPIView):

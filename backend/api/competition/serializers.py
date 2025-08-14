@@ -1,5 +1,7 @@
 from rest_framework.serializers import ModelSerializer
-from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment
+
+from api.users.serializers import UserSerializer
+from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment, DailyPages, BookRating
 from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
 from rest_framework import serializers
@@ -67,12 +69,14 @@ class StudentCommentSerializer(ModelSerializer):
     def create(self, validated_data):
         user = self.context['request'].user
         competition = validated_data.pop('competition')  # get competition instance
-        comment = validated_data.pop('comment')          # get comment text
+        type = validated_data.pop('type')
+        comment = validated_data.pop('comment')          #xt
 
         return StudentComment.objects.create(
             student=user,
             competition=competition,
-            comment=comment
+            comment=comment,
+            type=type,
         )
 
     def update(self, instance, validated_data):
@@ -84,15 +88,17 @@ class StudentCommentSerializer(ModelSerializer):
             competition = validated_data.pop('competition')
             user = self.context['request'].user
             comment = validated_data.pop('comment')
+            type = validated_data.pop('type')
             return StudentComment.objects.create(
                 student=user,
                 competition=competition,
-                comment=comment
+                comment=comment,
+                type=type,
             )
 
     class Meta:
         model = StudentComment
-        fields = ['id', 'competition', 'student', 'comment']
+        fields = ['id','type','competition', 'student', 'text']
         extra_kwargs = {
             "student": {"required": False},
         }
@@ -101,4 +107,54 @@ class CompetitionTeacherSerializer(ModelSerializer):
 
     class Meta:
         model = CompetitionRegistration
-        fields = ["id","student","name","surname","student_cart"]
+        fields = ["id","student","student_cart",'group_number']
+
+class DailyPageSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = DailyPages
+        fields = ['id','competition','user','book','page']
+
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        competition = validated_data.pop('competition')
+        book = validated_data.pop('book')
+        page = validated_data.pop('page')
+        return DailyPages.objects.create(
+            user=user,
+            competition=competition,
+            book=book,
+            page=page,
+        )
+
+class BookRatingSerializer(ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = BookRating
+        fields = ['id','competition','book','user','rating']
+
+    def validate(self, attrs):
+        user = self.context['request'].user
+        competition = attrs.get('competition')
+        book = attrs.get('book')
+
+        # Check if already rated
+        if BookRating.objects.filter(user=user, competition=competition, book=book).exists():
+            raise serializers.ValidationError("You have already rated this book.")
+
+        return attrs
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        competition = validated_data.pop('competition')
+        book = validated_data.pop('book')
+        rating = validated_data.pop('rating')
+        return BookRating.objects.create(
+            user=user,
+            competition=competition,
+            book=book,
+            rating=rating,
+        )

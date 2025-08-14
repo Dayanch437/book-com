@@ -31,3 +31,11 @@ class BookCategory(models.TextChoices):
 class Status(models.TextChoices):
     REGISTERED = "Registered"
     UNREGISTERED = "Unregistered"
+
+class CommentType(models.TextChoices):
+    BOOK_SUMMARY = "book summary"
+    FAVORITE_PARTS = "favorite parts"
+    NOTES = "notes"
+    THOUGHTS = "thoughts"
+    FAVORITE_QUOTES = "favorite quotes"
+

@@ -1,10 +1,10 @@
-from poetry.console.commands import self
 from rest_framework import viewsets
-from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment
+from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment,DailyPages,BookRating
 from .serializers import CompetitionSerializer, BookSerializer, CompetitionRegistrationSerializer, \
-    StudentCommentSerializer,CompetitionTeacherSerializer
+    StudentCommentSerializer,CompetitionTeacherSerializer,DailyPageSerializer,BookRatingSerializer
 from apps.utils.permissions import IsTeacherOrAdmin
-
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 class CompetitionViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
@@ -56,3 +56,18 @@ class CompetitionTeacherViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         qs = qs.filter(competition__created_by=self.request.user)
         return qs
+
+class DailyPageViewSet(viewsets.ModelViewSet):
+    queryset = DailyPages.objects.all()
+    serializer_class = DailyPageSerializer
+
+    def perform_create(self, serializer):
+        try:
+            serializer.save()
+        except DjangoValidationError as e:
+            raise DRFValidationError(e.messages)
+
+class BookRatingViewSet(viewsets.ModelViewSet):
+    queryset = BookRating.objects.all()
+    serializer_class = BookRatingSerializer
+
