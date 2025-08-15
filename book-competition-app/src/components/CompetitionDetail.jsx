@@ -12,7 +12,9 @@ import {
   FiMessageSquare,
   FiStar,
   FiBookmark,
-  FiLoader
+  FiLoader,
+  FiAlertCircle,
+  FiX
 } from 'react-icons/fi';
 
 const StarRating = ({ rating, setRating, interactive = true, isLoading = false }) => {
@@ -91,6 +93,9 @@ export default function CompetitionDetail() {
   const [isCommentLoading, setIsCommentLoading] = useState(false);
   const [commentError, setCommentError] = useState(null);
 
+  // Notification state
+  const [notifications, setNotifications] = useState([]);
+
   const getAuthToken = () => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -98,6 +103,21 @@ export default function CompetitionDetail() {
       return null;
     }
     return token;
+  };
+
+  const addNotification = (message, isError = false) => {
+    const id = Date.now();
+    const newNotification = {
+      id,
+      message,
+      isError
+    };
+    
+    setNotifications(prev => [...prev, newNotification]);
+    
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 1000);
   };
 
   // Fetch existing ratings for all books
@@ -117,13 +137,11 @@ export default function CompetitionDetail() {
         }
       );
 
-      // Initialize with default ratings of 0
       const ratings = {};
       competition.books.forEach(book => {
         ratings[book.id] = 0;
       });
 
-      // Update with actual ratings from API
       if (response.data && response.data.length > 0) {
         response.data.forEach(rating => {
           ratings[rating.book] = rating.rating;
@@ -131,7 +149,9 @@ export default function CompetitionDetail() {
       }
 
       setBookRatings(ratings);
+      // addNotification('Book ratings loaded successfully');
     } catch (err) {
+      // addNotification('Failed to load book ratings', true);
       console.error('Error fetching ratings:', err);
     } finally {
       setIsFetchingRatings(false);
@@ -160,14 +180,14 @@ export default function CompetitionDetail() {
         }
       );
 
-      // Update local state
       setBookRatings(prev => ({
         ...prev,
         [bookId]: rating
       }));
+      addNotification('Rating saved successfully');
     } catch (err) {
+      addNotification('Failed to save rating', true);
       console.error('Error saving rating:', err);
-      // Revert UI if API call fails
       setBookRatings(prev => ({
         ...prev,
         [bookId]: prev[bookId] || 0
@@ -208,7 +228,6 @@ export default function CompetitionDetail() {
           is_registered: apiData.is_registered === "true" || apiData.is_registered === true
         });
 
-        // Initialize states for each book
         const initialProgress = {};
         const initialDailyPages = {};
         const initialTotalPages = {};
@@ -226,7 +245,6 @@ export default function CompetitionDetail() {
         setTotalPagesRead(initialTotalPages);
         setIsRatingLoading(initialRatingLoading);
 
-        // Set first book as default for comments
         if (apiData.books.length > 0) {
           setNewComment(prev => ({
             ...prev,
@@ -234,12 +252,14 @@ export default function CompetitionDetail() {
           }));
         }
 
+        // addNotification('Competition data loaded successfully');
       } catch (err) {
         if (err.response?.status === 401 || err.response?.status === 403) {
           localStorage.removeItem('accessToken');
           navigate('/login');
         } else {
           setError(err.response?.data?.detail || err.message);
+          // addNotification('Failed to load competition data', true);
         }
       } finally {
         setIsLoading(false);
@@ -249,7 +269,6 @@ export default function CompetitionDetail() {
     fetchCompetition();
   }, [id, navigate]);
 
-  // Fetch ratings after competition data is loaded
   useEffect(() => {
     if (competition.books.length > 0) {
       fetchAllBookRatings();
@@ -275,8 +294,10 @@ export default function CompetitionDetail() {
         );
 
         setComments(response.data || []);
+        // addNotification('Comments loaded successfully');
       } catch (err) {
         setCommentError(err.response?.data?.detail || err.message);
+        // addNotification('Failed to load comments', true);
       } finally {
         setIsCommentLoading(false);
       }
@@ -316,7 +337,7 @@ export default function CompetitionDetail() {
         ...prev, 
         is_registered: true 
       }));
-
+      addNotification('Registration successful!');
     } catch (err) {
       if (err.response?.status === 401 || err.response?.status === 403) {
         localStorage.removeItem('accessToken');
@@ -326,6 +347,7 @@ export default function CompetitionDetail() {
           success: false,
           message: err.response?.data?.detail || 'Registration failed. Please try again.'
         });
+        addNotification(err.response?.data?.detail || 'Registration failed', true);
       }
     } finally {
       setIsSubmitting(false);
@@ -335,6 +357,7 @@ export default function CompetitionDetail() {
   const handleDownload = (fileUrl) => {
     if (fileUrl) {
       window.open(fileUrl, '_blank');
+      addNotification('Download started');
     }
   };
 
@@ -361,20 +384,19 @@ export default function CompetitionDetail() {
         }
       );
 
-      // Update total progress
       setTotalPagesRead(prev => ({
         ...prev,
         [bookId]: (prev[bookId] || 0) + pages
       }));
 
-      // Reset daily input
       setDailyPages(prev => ({
         ...prev,
         [bookId]: ''
       }));
-
+      addNotification('Progress saved successfully');
     } catch (err) {
       console.error('Error saving daily progress:', err);
+      addNotification('You can submit your progres only once within 24 hour', true);
     }
   };
 
@@ -408,8 +430,10 @@ export default function CompetitionDetail() {
         text: '',
         book: newComment.book
       });
+      addNotification('Comment posted successfully');
     } catch (err) {
       setCommentError(err.response?.data?.detail || 'Failed to post comment');
+      addNotification('Failed to post comment', true);
     } finally {
       setIsCommentLoading(false);
     }
@@ -440,7 +464,36 @@ export default function CompetitionDetail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 relative">
+      {/* Notification Container */}
+      <div className="fixed top-4 right-4 z-50 space-y-2 w-80">
+        {notifications.map(notification => (
+          <div 
+            key={notification.id}
+            className={`p-4 rounded-lg shadow-lg flex justify-between items-start ${
+              notification.isError 
+                ? 'bg-red-100 border-l-4 border-red-500' 
+                : 'bg-green-100 border-l-4 border-green-500'
+            }`}
+          >
+            <div className="flex items-start">
+              {notification.isError ? (
+                <FiAlertCircle className="text-red-500 mt-0.5 mr-2 flex-shrink-0" />
+              ) : (
+                <FiCheckCircle className="text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+              )}
+              <span className="text-sm">{notification.message}</span>
+            </div>
+            <button 
+              onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+              className="text-gray-500 hover:text-gray-700 ml-2"
+            >
+              <FiX size={16} />
+            </button>
+          </div>
+        ))}
+      </div>
+
       <button 
         onClick={() => navigate('/competitions')}
         className="flex items-center mb-6 text-indigo-600 hover:text-indigo-800"
