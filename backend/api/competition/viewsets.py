@@ -1,7 +1,9 @@
 from rest_framework import viewsets
-from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment,DailyPages,BookRating
+from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment, DailyPages, BookRating, \
+    Achievement
 from .serializers import CompetitionSerializer, BookSerializer, CompetitionRegistrationSerializer, \
-    StudentCommentSerializer,CompetitionTeacherSerializer,DailyPageSerializer,BookRatingSerializer
+    StudentCommentSerializer, CompetitionTeacherSerializer, DailyPageSerializer, BookRatingSerializer, \
+    AchievementSerializer
 from apps.utils.permissions import IsTeacherOrAdmin
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -20,6 +22,8 @@ class CompetitionStudentViewSet(viewsets.ModelViewSet):
     serializer_class = CompetitionSerializer
     http_method_names = ['get']
 
+
+
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
@@ -37,6 +41,11 @@ class CompetitionRegistrationViewSet(viewsets.ModelViewSet):
 class StudentCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()
     serializer_class = StudentCommentSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(student=self.request.user)
+        return qs
 
 class MyCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()
@@ -67,7 +76,16 @@ class DailyPageViewSet(viewsets.ModelViewSet):
         except DjangoValidationError as e:
             raise DRFValidationError(e.messages)
 
+
 class BookRatingViewSet(viewsets.ModelViewSet):
     queryset = BookRating.objects.all()
     serializer_class = BookRatingSerializer
 
+class AchievementViewSet(viewsets.ModelViewSet):
+    queryset = Achievement.objects.all()
+    serializer_class = AchievementSerializer
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(user=self.request.user)
+        return qs

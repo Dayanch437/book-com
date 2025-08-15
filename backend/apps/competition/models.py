@@ -99,13 +99,13 @@ class BookRating(BaseModel):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
 
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['competition', 'book', 'user'],  # assuming BaseModel has created_by
-                name='unique_book_rating_per_user'
-            )
-        ]
+
 
     def __str__(self):
         return f"{self.competition} rating {self.rating}"
+
+class Achievement(BaseModel):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="achievements"
+    )
+    name = models.CharField(max_length=255)
