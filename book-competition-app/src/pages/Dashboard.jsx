@@ -28,7 +28,8 @@ export default function Dashboard() {
   const [error, setError] = useState(null);
   const [registrationData, setRegistrationData] = useState({
     competitionId: null,
-    studentCart: ''
+    studentCart: '',
+    group: ''
   });
   const [showRegistrationForm, setShowRegistrationForm] = useState(false);
   const [registrationStatus, setRegistrationStatus] = useState({ success: false, message: '' });
@@ -81,7 +82,11 @@ export default function Dashboard() {
   }, [navigate]);
 
   const handleRegisterClick = (competitionId) => {
-    setRegistrationData({ ...registrationData, competitionId });
+    setRegistrationData({
+      competitionId: competitionId,
+      studentCart: '',
+      group: ''
+    });
     setShowRegistrationForm(true);
   };
 
@@ -101,6 +106,13 @@ export default function Dashboard() {
         return;
       }
 
+      // Debug logging
+      console.log('Registration payload:', {
+        competition: registrationData.competitionId,
+        student_cart: registrationData.studentCart,
+        group: registrationData.group
+      });
+
       const response = await fetch(`${API_BASE_URL}/api/competition/register/`, {
         method: 'POST',
         headers: {
@@ -109,25 +121,52 @@ export default function Dashboard() {
         },
         body: JSON.stringify({
           competition: registrationData.competitionId,
-          student_cart: registrationData.studentCart
+          student_cart: registrationData.studentCart,
+          group_number: registrationData.group
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || data.message || 'Registration failed');
+      // Handle both JSON and non-JSON responses
+      const responseText = await response.text();
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : {};
+      } catch (err) {
+        console.error('Failed to parse response:', err);
+        data = {};
       }
 
-      setRegistrationStatus({ success: true, message: 'Registration successful!' });
+      if (!response.ok) {
+        console.error('Registration failed:', {
+          status: response.status,
+          data: data
+        });
+        throw new Error(data.detail || data.message || `Registration failed with status ${response.status}`);
+      }
+
+      console.log('Registration successful:', data);
+      
+      setRegistrationStatus({ 
+        success: true, 
+        message: data.message || 'Registration successful!' 
+      });
+      
       setTimeout(() => {
         setShowRegistrationForm(false);
-        setRegistrationData({ competitionId: null, studentCart: '' });
-        window.location.reload(); // Refresh to update registration status
+        setRegistrationData({ 
+          competitionId: null, 
+          studentCart: '',
+          group: ''
+        });
+        window.location.reload();
       }, 2000);
 
     } catch (err) {
-      setRegistrationStatus({ success: false, message: err.message || 'Failed to register for competition' });
+      console.error('Registration error:', err);
+      setRegistrationStatus({ 
+        success: false, 
+        message: err.message || 'Failed to register for competition' 
+      });
     } finally {
       setLoading(false);
     }
@@ -171,8 +210,29 @@ export default function Dashboard() {
                   id="studentCart"
                   type="text"
                   value={registrationData.studentCart}
-                  onChange={(e) => setRegistrationData({...registrationData, studentCart: e.target.value})}
+                  onChange={(e) => setRegistrationData({
+                    ...registrationData,
+                    studentCart: e.target.value
+                  })}
                   placeholder="Enter your student ID card number"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label htmlFor="group" className="block mb-2 text-sm font-medium text-gray-700">
+                  Group Number
+                </label>
+                <input
+                  id="group"
+                  type="text"
+                  value={registrationData.group}
+                  onChange={(e) => setRegistrationData({
+                    ...registrationData,
+                    group: e.target.value
+                  })}
+                  placeholder="Enter your group number"
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
                   required
                 />
