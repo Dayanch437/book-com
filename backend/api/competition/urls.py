@@ -7,7 +7,8 @@ from api.competition.viewsets import (CompetitionStudentViewSet,
                                       CompetitionTeacherViewSet,
                                       StudentCommentViewSet,
                                       DailyPageViewSet,
-                                      BookRatingViewSet, AchievementViewSet,
+                                      BookRatingViewSet, AchievementViewSet, NotificationViewSet,
+                                      NotificationCompetitionViewSet,
                                       )
 
 router = routers.DefaultRouter()
@@ -22,4 +23,6 @@ router.register('teacher',CompetitionTeacherViewSet,basename='teacher')
 router.register('book-rating',BookRatingViewSet,basename='book-rating')
 router.register(r'daily-page',DailyPageViewSet,basename='daily-page')
 router.register('achievement',AchievementViewSet,basename='achievement')
+router.register('notification',NotificationViewSet,basename='notification')
+router.register('inbox',NotificationCompetitionViewSet,basename='inbox')
 urlpatterns = router.urls

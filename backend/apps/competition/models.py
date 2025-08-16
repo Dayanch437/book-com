@@ -109,3 +109,17 @@ class Achievement(BaseModel):
         User, on_delete=models.CASCADE, related_name="achievements"
     )
     name = models.CharField(max_length=255)
+
+class Notification(BaseModel):
+    registration = models.ForeignKey(CompetitionRegistration, on_delete=models.CASCADE, related_name="notifications")
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="notifications"
+    )
+    text = models.CharField(max_length=255)
+
+    def get_user_full_name(self):
+        return self.user.first_name + " " + self.user.last_name
+
+
+    def __str__(self):
+        return self.text

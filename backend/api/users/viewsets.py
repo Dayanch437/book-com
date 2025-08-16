@@ -127,7 +127,13 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+        qs = qs.filter(id=user.id)
+        return qs
 class DepartmentViewSet(ModelViewSet):
+
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     http_method_names = ["get"]

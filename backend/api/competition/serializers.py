@@ -1,15 +1,30 @@
+from rest_framework.fields import SerializerMethodField
 from rest_framework.serializers import ModelSerializer
 
 from api.users.serializers import UserSerializer
-from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment, DailyPages, BookRating, \
-    Achievement
+from apps.competition.models import Competition, \
+    Book, CompetitionRegistration, StudentComment, \
+    DailyPages, BookRating, \
+    Achievement, Notification
 from rest_framework.exceptions import ValidationError
 from django.db import IntegrityError
 from rest_framework import serializers
+
 class BookSerializer(ModelSerializer):
     class Meta:
         model = Book
         fields = ['id','competition','title','file']
+
+class NotificationSerializer(ModelSerializer):
+
+
+    class Meta:
+        model = Notification
+        fields = ['get_user_full_name','text']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        return Notification.objects.create(user=user,**validated_data)
 
 class CompetitionSerializer(ModelSerializer):
     books = BookSerializer(many=True, read_only=True)
@@ -58,10 +73,10 @@ class CompetitionRegistrationSerializer(ModelSerializer):
             return competition_register
         except IntegrityError:
             raise ValidationError({"detail": "You have already registered for this competition."})
-
+    notifications = NotificationSerializer(many=True, read_only=True)
     class Meta:
         model = CompetitionRegistration
-        fields = ['id', 'student', 'competition', 'student_cart','group_number']
+        fields = ['id', 'student', 'competition', 'student_cart','group_number','notifications']
         extra_kwargs = {
             "student": {"required": False, "read_only": True},
         }
@@ -162,3 +177,12 @@ class AchievementSerializer(ModelSerializer):
         model = Achievement
         fields = ['id','user','name']
 
+
+
+
+class InboxSerializer(ModelSerializer):
+    notifications = NotificationSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CompetitionRegistration
+        fields = ['id','notifications']
