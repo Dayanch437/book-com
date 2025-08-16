@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiBook, FiAward, FiUser, FiLogOut } from 'react-icons/fi';
+import { FiHome, FiBook, FiAward, FiUser, FiLogOut, FiInfo } from 'react-icons/fi';
 
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -27,8 +27,9 @@ export default function Sidebar() {
   // List of navigation items
   const navItems = [
     { path: '/competitions', name: 'Competitions', icon: <FiBook className="mr-2" /> },
-    { path: '#', name: 'Achievements', icon: <FiAward className="mr-2" /> },
-    { path: '#', name: 'Profile', icon: <FiUser className="mr-2" /> },
+    { path: '/achievements', name: 'Achievements', icon: <FiAward className="mr-2" /> },
+    { path: '/profile', name: 'Profile', icon: <FiUser className="mr-2" /> },
+    { path: '/about', name: 'About', icon: <FiInfo className="mr-2" /> },
   ];
 
   return (
@@ -61,7 +62,7 @@ export default function Sidebar() {
         <div className="flex flex-col h-full p-4">
           {/* Logo */}
           <div className="p-4 mb-8">
-            <a href='/' className="text-xl font-bold text-indigo-600">BookCompetitions</a>
+            <Link to="/" className="text-xl font-bold text-indigo-600">BookCompetitions</Link>
           </div>
 
           {/* Navigation Items */}
@@ -93,13 +94,14 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
+      
       {/* Overlay for mobile */}
-     {isMobileMenuOpen && (
-    <div
-    className="fixed inset-0 z-0.5 backdrop-blur-sm bg-white/30 md:hidden"
-    onClick={() => setIsMobileMenuOpen(false)}
-    />  
-)}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />  
+      )}
     </>
   );
 }

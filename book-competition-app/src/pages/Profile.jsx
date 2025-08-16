@@ -1,46 +1,55 @@
 import { useEffect, useState } from 'react';
-
-const mockUserData = {
-  id: 'user_123',
-  name: 'Dayan Chaves',
-  email: 'dayanch@example.com',
-  studentId: 'STU2023001',
-  department: 'Computer Science',
-  joinDate: '2023-01-15',
-  avatar: '/images/avatar.jpg',
-  bio: 'Book enthusiast and competition participant',
-  stats: {
-    competitionsJoined: 5,
-    competitionsWon: 2,
-    submissions: 8
-  }
-};
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('overview'); // 'overview' or 'competitions'
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // In production: const response = await axios.get('/api/profile');
-        // setUserData(response.data);
+        const token = localStorage.getItem('accessToken');
         
-        // Using mock data for now
-        setTimeout(() => {
-          setUserData(mockUserData);
-          setIsLoading(false);
-        }, 800); // Simulate network delay
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        };
+
+        const response = await axios.get(
+          'http://127.0.0.1:8000/api/users/users/',
+          config
+        );
+        
+        if (!response.data || (Array.isArray(response.data) && response.data.length === 0)) {
+          throw new Error('No user data found');
+        }
+        
+        setUserData(response.data);
+        setIsLoading(false);
       } catch (err) {
-        setError(err.message);
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+        
+        setError(err.response?.data?.message || err.message || 'Failed to fetch user data');
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -66,106 +75,81 @@ export default function Profile() {
     );
   }
 
+  const getDisplayUser = () => {
+    if (!userData) return null;
+    if (Array.isArray(userData)) return userData[0] || null;
+    return userData;
+  };
+
+  const displayUser = getDisplayUser();
+
+  if (!displayUser) {
+    return (
+      <div className="p-6 text-center">
+        <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-lg">
+          No user data available
+        </div>
+      </div>
+    );
+  }
+
+  const fullName = `${displayUser.first_name || ''} ${displayUser.last_name || ''}`.trim();
+  const studentId = `ID: ${displayUser.username?.toUpperCase() || 'N/A'}`;
+
   return (
     <div className="container px-4 py-8 mx-auto">
       {/* Profile Header */}
       <div className="flex flex-col items-center gap-6 mb-8 md:flex-row md:items-start">
-        <div className="w-32 h-32 overflow-hidden border-4 border-white rounded-full shadow-lg">
-          <img 
-            src={userData.avatar} 
-            alt={userData.name}
-            className="object-cover w-full h-full"
-          />
+        <div className="w-32 h-32 overflow-hidden border-4 border-white rounded-full shadow-lg bg-gray-200 flex items-center justify-center">
+          {displayUser.avatar ? (
+            <img 
+              src={displayUser.avatar} 
+              alt={fullName || 'User avatar'}
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <span className="text-4xl text-gray-600">
+              {displayUser.first_name?.charAt(0) || ''}{displayUser.last_name?.charAt(0) || ''}
+            </span>
+          )}
         </div>
         
         <div className="text-center md:text-left">
-          <h1 className="text-3xl font-bold text-gray-800">{userData.name}</h1>
-          <p className="mb-2 text-gray-600">{userData.bio}</p>
+          <h1 className="text-3xl font-bold text-gray-800">{fullName || 'No name provided'}</h1>
+          {displayUser.father_name && (
+            <p className="mb-2 text-gray-600">Father's name: {displayUser.father_name}</p>
+          )}
           <div className="flex flex-wrap justify-center gap-2 md:justify-start">
+            {displayUser.faculty && (
+              <span className="px-3 py-1 text-sm text-gray-800 bg-gray-100 rounded-full">
+                {displayUser.faculty}
+              </span>
+            )}
             <span className="px-3 py-1 text-sm text-gray-800 bg-gray-100 rounded-full">
-              {userData.department}
+              {studentId}
             </span>
-            <span className="px-3 py-1 text-sm text-gray-800 bg-gray-100 rounded-full">
-              ID: {userData.studentId}
-            </span>
-            <span className="px-3 py-1 text-sm text-gray-800 bg-gray-100 rounded-full">
-              Member since {new Date(userData.joinDate).toLocaleDateString()}
-            </span>
+            {displayUser.department && (
+              <span className="px-3 py-1 text-sm text-gray-800 bg-gray-100 rounded-full">
+                {displayUser.department}
+              </span>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 gap-4 mb-8 md:grid-cols-3">
-        <StatCard 
-          title="Competitions Joined" 
-          value={userData.stats.competitionsJoined}
-          icon="🏆"
-        />
-        <StatCard 
-          title="Competitions Won" 
-          value={userData.stats.competitionsWon}
-          icon="🎉"
-        />
-        <StatCard 
-          title="Submissions" 
-          value={userData.stats.submissions}
-          icon="📚"
-        />
-      </div>
-
-      {/* Tab Navigation */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="flex space-x-8">
-          <button
-            className={`py-4 px-1 font-medium text-sm ${activeTab === 'overview' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`py-4 px-1 font-medium text-sm ${activeTab === 'competitions' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-gray-700'}`}
-            onClick={() => setActiveTab('competitions')}
-          >
-            My Competitions
-          </button>
-        </nav>
-      </div>
-
-      {/* Tab Content */}
-      {activeTab === 'overview' ? (
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="mb-4 text-xl font-bold text-gray-800">Personal Information</h2>
-          <div className="space-y-4">
-            <InfoField label="Full Name" value={userData.name} />
-            <InfoField label="Email" value={userData.email} />
-            <InfoField label="Student ID" value={userData.studentId} />
-            <InfoField label="Department" value={userData.department} />
-            <InfoField 
-              label="Member Since" 
-              value={new Date(userData.joinDate).toLocaleDateString()} 
-            />
-          </div>
+      {/* Overview Content */}
+      <div className="p-6 bg-white rounded-lg shadow">
+        <h2 className="mb-4 text-xl font-bold text-gray-800">Personal Information</h2>
+        <div className="space-y-4">
+          <InfoField label="Full Name" value={fullName || 'Not provided'} />
+          <InfoField label="Email" value={displayUser.email || 'Not provided'} />
+          <InfoField label="Username" value={displayUser.username || 'Not provided'} />
+          {displayUser.father_name && (
+            <InfoField label="Father's Name" value={displayUser.father_name} />
+          )}
+          {displayUser.faculty && <InfoField label="Faculty" value={displayUser.faculty} />}
+          {displayUser.department && <InfoField label="Department" value={displayUser.department} />}
         </div>
-      ) : (
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h2 className="mb-4 text-xl font-bold text-gray-800">My Active Competitions</h2>
-          <p className="text-gray-600">Your registered competitions will appear here.</p>
-          {/* You can reuse your ActiveCompetitions component here */}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Helper Components
-function StatCard({ title, value, icon }) {
-  return (
-    <div className="flex items-center p-4 bg-white rounded-lg shadow">
-      <div className="mr-4 text-3xl">{icon}</div>
-      <div>
-        <p className="text-sm text-gray-500">{title}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
       </div>
     </div>
   );

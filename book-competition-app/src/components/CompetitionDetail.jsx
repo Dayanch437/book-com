@@ -382,6 +382,7 @@ export default function CompetitionDetail() {
             'Content-Type': 'application/json',
           }
         }
+
       );
 
       setTotalPagesRead(prev => ({
