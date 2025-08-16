@@ -158,11 +158,12 @@ class BookRatingSerializer(ModelSerializer):
         book = validated_data.pop('book')
         rating = validated_data.pop('rating')
         # Delete the old rating if exists
-        BookRating.objects.filter(
-            user=user,
-            competition=competition,
-            book=book
-        ).delete()
+
+        # BookRating.objects.filter(
+        #     user=user,
+        #     competition=competition,
+        #     book=book
+        # ).delete()
 
         return BookRating.objects.create(
             user=user,

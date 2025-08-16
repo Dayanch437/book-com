@@ -73,21 +73,22 @@ class DailyPages(BaseModel):
     page = models.IntegerField()
 
     def __str__(self):
-        return f"{self.competition} page {self.page}"
+        return f"{self.competition} user {self.user}"
 
-    def clean(self):
-        # Get the latest DailyPages entry for this competition & book
-        last_entry = DailyPages.objects.filter(
-            competition=self.competition,
-            book=self.book
-        ).order_by('-created_at').first()
+    # def clean(self):
+    #     # Get the latest DailyPages entry for this competition & book
+    #     last_entry = DailyPages.objects.filter(
+    #         competition=self.competition,
+    #         book=self.book
+    #     ).order_by('-created_at').first()
 
-        if last_entry and timezone.now() - last_entry.created_at < timedelta(hours=24):
-            raise ValidationError("You can only create one entry for this book every 24 hours.")
+        # if last_entry and timezone.now() - last_entry.created_at < timedelta(hours=24):
+        #     raise ValidationError("You can only create one entry for this book every 24 hours.")
 
-    def save(self, *args, **kwargs):
-        self.clean()  # run our check before saving
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     self.clean()  # run our check before saving
+    #     super().save(*args, **kwargs)
+
 
 class BookRating(BaseModel):
     user = models.ForeignKey(
@@ -109,6 +110,7 @@ class Achievement(BaseModel):
         User, on_delete=models.CASCADE, related_name="achievements"
     )
     name = models.CharField(max_length=255)
+
 
 class Notification(BaseModel):
     registration = models.ForeignKey(CompetitionRegistration, on_delete=models.CASCADE, related_name="notifications")

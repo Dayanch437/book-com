@@ -79,10 +79,20 @@ class DailyPageViewSet(viewsets.ModelViewSet):
         except DjangoValidationError as e:
             raise DRFValidationError(e.messages)
 
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(user=self.request.user)
+
 
 class BookRatingViewSet(viewsets.ModelViewSet):
     queryset = BookRating.objects.all()
     serializer_class = BookRatingSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(user=self.request.user)
+        return qs
 
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
