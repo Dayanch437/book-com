@@ -596,9 +596,6 @@ export default function CompetitionDetail() {
                             Add Pages
                           </button>
                         </div>
-                        <div className="text-sm text-gray-600">
-                          Total read: {totalPagesRead[book.id] || 0} pages
-                        </div>
                       </div>
                     </div>
 
