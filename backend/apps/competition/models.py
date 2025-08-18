@@ -1,11 +1,11 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from apps.users.models import User
 from apps.utils.models import BaseModel
-from .enums import BookCategory,CommentType
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.core.exceptions import ValidationError
-from django.utils import timezone
-from datetime import timedelta
+
+from .enums import BookCategory, CommentType
+
 
 class Competition(BaseModel):
     title = models.CharField(max_length=255)
@@ -15,6 +15,7 @@ class Competition(BaseModel):
     )
     start_date = models.DateField()
     end_date = models.DateField()
+
     def __str__(self):
         return self.title
 
@@ -27,7 +28,6 @@ class Book(BaseModel):
     title = models.CharField(max_length=255)
     file = models.FileField(upload_to="competition_books/")
     author = models.CharField(max_length=255)
-
 
     def __str__(self):
         return self.title
@@ -49,11 +49,10 @@ class CompetitionRegistration(BaseModel):
     def __str__(self):
         return f"{self.student} registered for {self.competition}"
 
+
 class StudentComment(BaseModel):
-    type = models.CharField(max_length=255,choices=CommentType.choices)
-    student = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="comments"
-    )
+    type = models.CharField(max_length=255, choices=CommentType.choices)
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comments")
     competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name="student_comments"
     )
@@ -62,10 +61,9 @@ class StudentComment(BaseModel):
     def __str__(self):
         return f"{self.student} commented on {self.competition}"
 
+
 class DailyPages(BaseModel):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="daily_pages"
-    )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="daily_pages")
     competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name="daily_pages"
     )
@@ -74,20 +72,6 @@ class DailyPages(BaseModel):
 
     def __str__(self):
         return f"{self.competition} user {self.user}"
-
-    # def clean(self):
-    #     # Get the latest DailyPages entry for this competition & book
-    #     last_entry = DailyPages.objects.filter(
-    #         competition=self.competition,
-    #         book=self.book
-    #     ).order_by('-created_at').first()
-
-        # if last_entry and timezone.now() - last_entry.created_at < timedelta(hours=24):
-        #     raise ValidationError("You can only create one entry for this book every 24 hours.")
-
-    # def save(self, *args, **kwargs):
-    #     self.clean()  # run our check before saving
-    #     super().save(*args, **kwargs)
 
 
 class BookRating(BaseModel):
@@ -98,12 +82,13 @@ class BookRating(BaseModel):
         Competition, on_delete=models.CASCADE, related_name="book_ratings"
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
-    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-
-
+    rating = models.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
 
     def __str__(self):
         return f"{self.competition} rating {self.rating}"
+
 
 class Achievement(BaseModel):
     user = models.ForeignKey(
@@ -113,7 +98,9 @@ class Achievement(BaseModel):
 
 
 class Notification(BaseModel):
-    registration = models.ForeignKey(CompetitionRegistration, on_delete=models.CASCADE, related_name="notifications")
+    registration = models.ForeignKey(
+        CompetitionRegistration, on_delete=models.CASCADE, related_name="notifications"
+    )
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="notifications"
     )
@@ -121,7 +108,6 @@ class Notification(BaseModel):
 
     def get_user_full_name(self):
         return self.user.first_name + " " + self.user.last_name
-
 
     def __str__(self):
         return self.text

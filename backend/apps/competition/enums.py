@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class BookCategory(models.TextChoices):
     FICTION = "Fiction"
     NON_FICTION = "Non-fiction"
@@ -28,9 +29,11 @@ class BookCategory(models.TextChoices):
     ADVENTURE = "Adventure"
     CLASSICS = "Classics"
 
+
 class Status(models.TextChoices):
     REGISTERED = "Registered"
     UNREGISTERED = "Unregistered"
+
 
 class CommentType(models.TextChoices):
     BOOK_SUMMARY = "book summary"
@@ -38,4 +41,3 @@ class CommentType(models.TextChoices):
     NOTES = "notes"
     THOUGHTS = "thoughts"
     FAVORITE_QUOTES = "favorite quotes"
-

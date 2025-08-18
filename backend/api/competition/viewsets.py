@@ -1,14 +1,33 @@
+from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework.permissions import IsAuthenticated
 
-from apps.competition.models import Competition, Book, CompetitionRegistration, StudentComment, DailyPages, BookRating, \
-    Achievement, Notification
-from .serializers import CompetitionSerializer, BookSerializer, CompetitionRegistrationSerializer, \
-    StudentCommentSerializer, CompetitionTeacherSerializer, DailyPageSerializer, BookRatingSerializer, \
-    AchievementSerializer, NotificationSerializer, InboxSerializer
+from apps.competition.models import (
+    Achievement,
+    Book,
+    BookRating,
+    Competition,
+    CompetitionRegistration,
+    DailyPages,
+    Notification,
+    StudentComment,
+)
 from apps.utils.permissions import IsTeacherOrAdmin
-from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.exceptions import ValidationError as DRFValidationError
+
+from .serializers import (
+    AchievementSerializer,
+    BookRatingSerializer,
+    BookSerializer,
+    CompetitionRegistrationSerializer,
+    CompetitionSerializer,
+    CompetitionTeacherSerializer,
+    DailyPageSerializer,
+    InboxSerializer,
+    NotificationSerializer,
+    StudentCommentSerializer,
+)
+
 
 class CompetitionViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
@@ -20,17 +39,18 @@ class CompetitionViewSet(viewsets.ModelViewSet):
         qs = qs.filter(created_by=self.request.user)
         return qs
 
+
 class CompetitionStudentViewSet(viewsets.ModelViewSet):
     queryset = Competition.objects.all()
     serializer_class = CompetitionSerializer
-    http_method_names = ['get']
-
+    http_method_names = ["get"]
 
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
     permission_classes = [IsTeacherOrAdmin]
+
 
 class CompetitionRegistrationViewSet(viewsets.ModelViewSet):
     queryset = CompetitionRegistration.objects.all()
@@ -41,6 +61,7 @@ class CompetitionRegistrationViewSet(viewsets.ModelViewSet):
         qs = qs.filter(student=self.request.user)
         return qs
 
+
 class StudentCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()
     serializer_class = StudentCommentSerializer
@@ -50,6 +71,7 @@ class StudentCommentViewSet(viewsets.ModelViewSet):
         qs = qs.filter(student=self.request.user)
         return qs
 
+
 class MyCommentViewSet(viewsets.ModelViewSet):
     queryset = StudentComment.objects.all()
     serializer_class = StudentCommentSerializer
@@ -58,16 +80,18 @@ class MyCommentViewSet(viewsets.ModelViewSet):
         user = self.request.user
         return StudentComment.objects.filter(student=user)
 
+
 class CompetitionTeacherViewSet(viewsets.ModelViewSet):
 
     queryset = CompetitionRegistration.objects.all()
-    serializer_class =  CompetitionTeacherSerializer
-    http_method_names = ['get']
+    serializer_class = CompetitionTeacherSerializer
+    http_method_names = ["get"]
 
     def get_queryset(self):
         qs = super().get_queryset()
         qs = qs.filter(competition__created_by=self.request.user)
         return qs
+
 
 class DailyPageViewSet(viewsets.ModelViewSet):
     queryset = DailyPages.objects.all()
@@ -94,6 +118,7 @@ class BookRatingViewSet(viewsets.ModelViewSet):
         qs = qs.filter(user=self.request.user)
         return qs
 
+
 class AchievementViewSet(viewsets.ModelViewSet):
     queryset = Achievement.objects.all()
     serializer_class = AchievementSerializer
@@ -104,18 +129,20 @@ class AchievementViewSet(viewsets.ModelViewSet):
         qs = qs.filter(user=self.request.user)
         return qs
 
+
 class NotificationViewSet(viewsets.ModelViewSet):
 
     queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
 
+
 class NotificationCompetitionViewSet(viewsets.ModelViewSet):
 
     queryset = CompetitionRegistration.objects.all()
     serializer_class = InboxSerializer
     permission_classes = [IsAuthenticated]
-    http_method_names = ['get']
+    http_method_names = ["get"]
 
     def get_queryset(self):
         qs = super().get_queryset()

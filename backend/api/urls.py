@@ -2,8 +2,7 @@ from django.urls import include, path
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from api.users.serializers import CustomTokenObtainPairSerializer
-from api.users.viewsets import RegisterView, VerifyEmailView
-from api.users.viewsets import verify_token
+from api.users.viewsets import RegisterView, VerifyEmailView, verify_token
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),
@@ -11,7 +10,7 @@ urlpatterns = [
         "auth/login/",
         TokenObtainPairView.as_view(serializer_class=CustomTokenObtainPairSerializer),
     ),
-    path('token/verify/', verify_token, name='token_verify'),
+    path("token/verify/", verify_token, name="token_verify"),
     path(
         "verify-email/<uidb64>/<token>/", VerifyEmailView.as_view(), name="verify-email"
     ),

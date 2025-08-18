@@ -1,21 +1,28 @@
 import random
-from django.shortcuts import render
-from django.views import View
+
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.shortcuts import render
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.views import View
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from apps.users.models import PasswordResetOTP, User, Department, Faculty
-from django_filters.rest_framework import DjangoFilterBackend
 
+from apps.users.models import Department, Faculty, PasswordResetOTP, User
 
-from .serializers import (RequestOTPSerializer, ResetPasswordWithOTPSerializer,
-                          UserRegisterSerializer, UserSerializer, DepartmentSerializer, FacultySerializer,)
+from .serializers import (
+    DepartmentSerializer,
+    FacultySerializer,
+    RequestOTPSerializer,
+    ResetPasswordWithOTPSerializer,
+    UserRegisterSerializer,
+    UserSerializer,
+)
 
 
 class RegisterView(generics.CreateAPIView):
@@ -123,6 +130,7 @@ class ResetPasswordWithOTPView(APIView):
 
         return Response({"detail": "Password reset successful."}, status=200)
 
+
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -132,13 +140,15 @@ class UserViewSet(ModelViewSet):
         qs = super().get_queryset()
         qs = qs.filter(id=user.id)
         return qs
+
+
 class DepartmentViewSet(ModelViewSet):
 
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
     http_method_names = ["get"]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['name', 'faculty']
+    filterset_fields = ["name", "faculty"]
 
 
 class FacultyViewSet(ModelViewSet):
@@ -147,35 +157,32 @@ class FacultyViewSet(ModelViewSet):
     http_method_names = ["get"]
 
 
+from rest_framework import status
+
 # views.py
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import AccessToken
 
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def verify_token(request):
-    token = request.data.get('token', None)
+    token = request.data.get("token", None)
 
     if not token:
         return Response(
-            {'detail': 'Token not provided'},
-            status=status.HTTP_400_BAD_REQUEST
+            {"detail": "Token not provided"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
         # This will raise an exception if token is invalid
         AccessToken(token)
-        return Response(
-            {'detail': 'Token is valid'},
-            status=status.HTTP_200_OK
-        )
+        return Response({"detail": "Token is valid"}, status=status.HTTP_200_OK)
     except TokenError as e:
         return Response(
-            {'detail': 'Token is invalid or expired'},
-            status=status.HTTP_401_UNAUTHORIZED
+            {"detail": "Token is invalid or expired"},
+            status=status.HTTP_401_UNAUTHORIZED,
         )
