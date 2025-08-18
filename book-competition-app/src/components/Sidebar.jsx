@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiBook, FiAward, FiUser, FiLogOut, FiInfo } from 'react-icons/fi';
+import { FiHome, FiBook, FiAward, FiUser, FiLogOut, FiInfo, FiBell, FiInbox } from 'react-icons/fi';
+import axios from 'axios';
 
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -11,6 +13,24 @@ export default function Sidebar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  // Fetch unread notifications count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await axios.get('http://127.0.0.1:8000/api/notification/');
+        setUnreadCount(response.data.length); // Assuming all are unread initially
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Optional: Set up polling for real-time updates
+    const interval = setInterval(fetchUnreadCount, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     // Clear tokens from localStorage
@@ -29,6 +49,20 @@ export default function Sidebar() {
     { path: '/competitions', name: 'Competitions', icon: <FiBook className="mr-2" /> },
     { path: '/achievements', name: 'Achievements', icon: <FiAward className="mr-2" /> },
     { path: '/profile', name: 'Profile', icon: <FiUser className="mr-2" /> },
+    { 
+      path: '/inbox', 
+      name: 'Notifications', 
+      icon: (
+        <div className="relative mr-2">
+          <FiInbox />
+          {unreadCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      ) 
+    },
     { path: '/about', name: 'About', icon: <FiInfo className="mr-2" /> },
   ];
 
@@ -68,6 +102,16 @@ export default function Sidebar() {
           {/* Navigation Items */}
           <nav className="flex-1">
             <ul className="space-y-2">
+              <li>
+                <Link
+                  to="/"
+                  className={`flex items-center p-3 rounded-lg ${location.pathname === '/' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-700 hover:bg-gray-100'}`}
+                >
+                  <FiHome className="mr-2" />
+                  <span>Home</span>
+                </Link>
+              </li>
+              
               {navItems.map((item) => (
                 <li key={item.path}>
                   <Link

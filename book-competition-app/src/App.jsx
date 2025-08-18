@@ -12,6 +12,7 @@ const Register = lazy(() => import("./pages/Register"));
 const CompetitionsPage = lazy(() => import("./pages/Dashboard"));
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const InboxPage = lazy(() => import("./pages/InboxPage"))
 
 function AppLayout() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/competitions/:id" element={<CompetitionDetail />} />
             <Route path="/competitions" element={<CompetitionsPage />} />
             <Route path="/about" element={<About />} />
+            <Route path="/inbox" element={< InboxPage />} />
             <Route path="/competitions/register/:id" element={<CompetitionsPage />} />
           </Route>
         </Routes>
