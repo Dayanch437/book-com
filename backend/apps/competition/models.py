@@ -56,6 +56,7 @@ class StudentComment(BaseModel):
     competition = models.ForeignKey(
         Competition, on_delete=models.CASCADE, related_name="student_comments"
     )
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="comments")
     text = models.TextField()
 
     def __str__(self):
@@ -98,8 +99,8 @@ class Achievement(BaseModel):
 
 
 class Notification(BaseModel):
-    registration = models.ForeignKey(
-        CompetitionRegistration, on_delete=models.CASCADE, related_name="notifications"
+    competition = models.ForeignKey(
+        Competition, on_delete=models.CASCADE, related_name="notifications"
     )
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="notifications"

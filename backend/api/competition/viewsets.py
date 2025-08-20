@@ -13,6 +13,7 @@ from apps.competition.models import (
     Notification,
     StudentComment,
 )
+from apps.users.models import User
 from apps.utils.permissions import IsTeacherOrAdmin
 
 from .serializers import (
@@ -26,6 +27,7 @@ from .serializers import (
     InboxSerializer,
     NotificationSerializer,
     StudentCommentSerializer,
+    CommentsSerializer
 )
 
 
@@ -73,12 +75,12 @@ class StudentCommentViewSet(viewsets.ModelViewSet):
 
 
 class MyCommentViewSet(viewsets.ModelViewSet):
-    queryset = StudentComment.objects.all()
-    serializer_class = StudentCommentSerializer
+    queryset = User.objects.all()
+    serializer_class = CommentsSerializer
 
     def get_queryset(self):
         user = self.request.user
-        return StudentComment.objects.filter(student=user)
+        return User.objects.filter(comments__competition__created_by=user)
 
 
 class CompetitionTeacherViewSet(viewsets.ModelViewSet):
@@ -139,12 +141,8 @@ class NotificationViewSet(viewsets.ModelViewSet):
 
 class NotificationCompetitionViewSet(viewsets.ModelViewSet):
 
-    queryset = CompetitionRegistration.objects.all()
+    queryset = Competition.objects.all()
     serializer_class = InboxSerializer
     permission_classes = [IsAuthenticated]
     http_method_names = ["get"]
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        qs = qs.filter(student=self.request.user)
-        return qs
