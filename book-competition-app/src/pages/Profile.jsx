@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function Profile() {
   const [userData, setUserData] = useState(null);
@@ -26,7 +27,7 @@ export default function Profile() {
         };
 
         const response = await axios.get(
-          'http://127.0.0.1:8000/api/users/users/',
+          `${API_BASE_URL}/api/users/users/`,
           config
         );
         

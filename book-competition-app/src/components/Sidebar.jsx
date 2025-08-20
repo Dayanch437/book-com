@@ -1,70 +1,58 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiBook, FiAward, FiUser, FiLogOut, FiInfo, FiBell, FiInbox } from 'react-icons/fi';
-import axios from 'axios';
+import { 
+  FiHome, FiBook, FiAward, FiUser, FiLogOut, 
+  FiInfo, FiInbox, FiSettings 
+} from 'react-icons/fi';
 
 export default function Sidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [userRole, setUserRole] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Get user role on component mount
+  useEffect(() => {
+    const role = localStorage.getItem('role'); // Direct string "TEACHER"
+    if (role) {
+      setUserRole(role);
+    }
+  }, []);
 
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
-  // Fetch unread notifications count
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      try {
-        const response = await axios.get('http://127.0.0.1:8000/api/notification/');
-        setUnreadCount(response.data.length); // Assuming all are unread initially
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
-    };
-
-    fetchUnreadCount();
-    // Optional: Set up polling for real-time updates
-    const interval = setInterval(fetchUnreadCount, 60000); // Check every minute
-    
-    return () => clearInterval(interval);
-  }, []);
-
   const handleLogout = () => {
-    // Clear tokens from localStorage
+    // Clear tokens and user data from localStorage
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('role');
     
     // Redirect to login page
     navigate('/');
-    
-    // Optional: You might want to refresh the page to clear any state
     window.location.reload();
   };
 
-  // List of navigation items
-  const navItems = [
+  // Base navigation items for all users
+  const baseNavItems = [
     { path: '/competitions', name: 'Competitions', icon: <FiBook className="mr-2" /> },
     { path: '/achievements', name: 'Achievements', icon: <FiAward className="mr-2" /> },
     { path: '/profile', name: 'Profile', icon: <FiUser className="mr-2" /> },
-    { 
-      path: '/inbox', 
-      name: 'Notifications', 
-      icon: (
-        <div className="relative mr-2">
-          <FiInbox />
-          {unreadCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              {unreadCount}
-            </span>
-          )}
-        </div>
-      ) 
-    },
+    { path: '/inbox', name: 'Notifications', icon: <FiInbox className="mr-2" /> },
     { path: '/about', name: 'About', icon: <FiInfo className="mr-2" /> },
   ];
+
+  // Admin/Instructor-specific navigation items
+  const adminNavItems = [
+    { path: '/admin', name: 'Admin Panel', icon: <FiSettings className="mr-2" /> }
+  ];
+
+  // Combine nav items based on user role
+  const navItems = userRole === 'TEACHER'
+    ? [...baseNavItems, ...adminNavItems] 
+    : baseNavItems;
 
   return (
     <>
@@ -128,6 +116,7 @@ export default function Sidebar() {
 
           {/* Bottom Section with Logout Button */}
           <div className="p-4 mt-auto border-t border-gray-200">
+            <div className="text-xs text-gray-500 mb-2">Logged in as: {userRole}</div>
             <button 
               onClick={handleLogout}
               className="flex items-center w-full p-3 text-gray-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"

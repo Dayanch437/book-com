@@ -12,8 +12,8 @@ const Register = lazy(() => import("./pages/Register"));
 const CompetitionsPage = lazy(() => import("./pages/Dashboard"));
 const About = lazy(() => import("./pages/About"));
 const Achievements = lazy(() => import("./pages/Achievements"));
-const InboxPage = lazy(() => import("./pages/InboxPage"))
-
+const InboxPage = lazy(() => import("./pages/InboxPage"));
+const Admin = lazy(() => import("./pages/admin"))
 function AppLayout() {
   return (
     <div className="flex h-screen bg-gray-50">
@@ -53,6 +53,7 @@ export default function App() {
             <Route path="/about" element={<About />} />
             <Route path="/inbox" element={< InboxPage />} />
             <Route path="/competitions/register/:id" element={<CompetitionsPage />} />
+            <Route path="/admin" element={<Admin />} />
           </Route>
         </Routes>
       </Suspense>

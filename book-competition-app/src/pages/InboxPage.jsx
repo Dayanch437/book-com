@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiMail, FiUser, FiBell } from 'react-icons/fi';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
-const API_BASE_URL = 'http://127.0.0.1:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
 
 const InboxPage = () => {
   const [notificationGroups, setNotificationGroups] = useState([]);

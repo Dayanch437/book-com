@@ -75,6 +75,7 @@ export default function Login() {
       // Store the tokens
       localStorage.setItem('accessToken', data.access);
       localStorage.setItem('refreshToken', data.refresh);
+      localStorage.setItem('role',data.role)
 
       setSuccess('Login successful! Redirecting...');
       setTimeout(() => navigate('/competitions'), );

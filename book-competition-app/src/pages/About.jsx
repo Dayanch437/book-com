@@ -44,15 +44,6 @@ export default function About() {
             <p className="text-gray-700">
               <span className="font-medium">Developer Phone:</span> +993 61 53 58 24
             </p>
-            <p className="text-gray-700">
-              <span className="font-medium">University Email:</span> support@university.edu
-            </p>
-            <p className="text-gray-700">
-              <span className="font-medium">University Phone:</span> +1 (123) 456-7890
-            </p>
-            <p className="text-gray-700">
-              <span className="font-medium">Address:</span> 123 University Ave, Campus City
-            </p>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config';
 
 export default function Achievements() {
   const [achievements, setAchievements] = useState([]);
@@ -17,7 +18,7 @@ export default function Achievements() {
           return;
         }
 
-        const response = await axios.get('http://127.0.0.1:8000/api/achievement/', {
+        const response = await axios.get(`${API_BASE_URL}/api/achievement/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
