@@ -27,6 +27,12 @@ export default function AdminPanel() {
     file: null
   });
 
+  // Notification form state
+  const [notificationForm, setNotificationForm] = useState({
+    competition: '',
+    text: ''
+  });
+
   // Fetch competitions
   const fetchCompetitions = async () => {
     try {
@@ -126,6 +132,31 @@ export default function AdminPanel() {
     }
   };
 
+  // Handle notification form submission
+  const handleNotificationSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      setError('');
+      const token = localStorage.getItem('accessToken');
+      
+      await axios.post('http://127.0.0.1:8000/api/notification/', notificationForm, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      setSuccess('Notification created successfully!');
+      setNotificationForm({ competition: '', text: '' });
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      setError('Failed to create notification');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Delete competition
   const handleDeleteCompetition = async (id) => { 
     if (!window.confirm('Are you sure you want to delete this competition?')) return;
@@ -197,6 +228,16 @@ export default function AdminPanel() {
             }`}
           >
             Comments
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`py-2 px-4 font-medium whitespace-nowrap ${
+              activeTab === 'notifications'
+                ? 'border-b-2 border-indigo-600 text-indigo-600'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Notifications
           </button>
           {selectedCompetition && (
             <button
@@ -425,6 +466,49 @@ export default function AdminPanel() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-xl font-semibold mb-4">Create Notification</h2>
+            <form onSubmit={handleNotificationSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Select Competition</label>
+                <select
+                  required
+                  value={notificationForm.competition}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, competition: e.target.value })}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="">Select a competition</option>
+                  {competitions.map((comp) => (
+                    <option key={comp.id} value={comp.id}>
+                      {comp.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Notification Text</label>
+                <textarea
+                  required
+                  value={notificationForm.text}
+                  onChange={(e) => setNotificationForm({ ...notificationForm, text: e.target.value })}
+                  rows={4}
+                  placeholder="Enter notification message"
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+              >
+                {loading ? 'Creating...' : 'Create Notification'}
+              </button>
+            </form>
           </div>
         )}
 
