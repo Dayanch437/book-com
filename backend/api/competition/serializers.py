@@ -122,18 +122,13 @@ class CompetitionSerializer(ModelSerializer):
 
 
 class StudentCommentSerializer(ModelSerializer):
+
     def create(self, validated_data):
+        print("validated_data:", validated_data)
         user = self.context["request"].user
-        competition = validated_data.pop("competition")  # get competition instance
-        type = validated_data.pop("type")
-        text = validated_data.pop("text")
-        book = validated_data.pop("book")
+
         return StudentComment.objects.create(
-            student=user,
-            competition=competition,
-            text=text,
-            type=type,
-            book=book,
+            student=user,**validated_data
         )
 
     def update(self, instance, validated_data):
@@ -154,7 +149,7 @@ class StudentCommentSerializer(ModelSerializer):
             )
 
     full_name = SerializerMethodField()
-    book = BookSerializer(read_only=True)
+    # book = BookSerializer(read_only=True)
 
     class Meta:
         model = StudentComment

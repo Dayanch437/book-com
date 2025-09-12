@@ -57,6 +57,8 @@ class StudentComment(BaseModel):
         Competition, on_delete=models.CASCADE, related_name="student_comments"
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="comments")
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
     text = models.TextField()
 
     def __str__(self):

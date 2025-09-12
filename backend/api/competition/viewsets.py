@@ -73,6 +73,12 @@ class StudentCommentViewSet(viewsets.ModelViewSet):
         qs = qs.filter(student=self.request.user)
         return qs
 
+    def get_serializer_class(self):
+        serializer = super().get_serializer_class()
+        print(serializer.data)
+        return serializer
+
+
 
 class MyCommentViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
