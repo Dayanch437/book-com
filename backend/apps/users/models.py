@@ -49,7 +49,7 @@ class User(AbstractUser):
     faculty = ForeignKey(Faculty, on_delete=models.CASCADE, null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now)
     department = ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
-
+    is_active = models.BooleanField(default=True)
     objects = UserManager()
 
     def __str__(self):

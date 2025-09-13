@@ -30,7 +30,7 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def perform_create(self, serializer):
-        user = serializer.save(is_active=False)
+        user = serializer.save(is_active=True)
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
         activation_link = f"{self.request.scheme}://{self.request.get_host()}/api/verify-email/{uid}/{token}/"
