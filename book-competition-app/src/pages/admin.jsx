@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// API base URL
+import { API_BASE_URL } from '../config';
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState('competitions');
   const [competitions, setCompetitions] = useState([]);
@@ -38,7 +41,7 @@ export default function AdminPanel() {
     try {
       setLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('http://127.0.0.1:8000/api/competitions/', {
+      const response = await axios.get(`${API_BASE_URL}/api/competitions/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -57,7 +60,7 @@ export default function AdminPanel() {
     try {
       setCommentsLoading(true);
       const token = localStorage.getItem('accessToken');
-      const response = await axios.get('http://127.0.0.1:8000/api/my-comments/', {
+      const response = await axios.get(`${API_BASE_URL}/api/my-comments/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -83,7 +86,7 @@ export default function AdminPanel() {
       setError('');
       const token = localStorage.getItem('accessToken');
       
-      await axios.post('http://127.0.0.1:8000/api/competitions/', competitionForm, {
+      await axios.post(`${API_BASE_URL}/api/competitions/`, competitionForm, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -114,7 +117,7 @@ export default function AdminPanel() {
       formData.append('title', bookForm.title);
       formData.append('file', bookForm.file);
 
-      await axios.post('http://127.0.0.1:8000/api/upload-book/', formData, {
+      await axios.post(`${API_BASE_URL}/api/upload-book/`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
@@ -140,7 +143,7 @@ export default function AdminPanel() {
       setError('');
       const token = localStorage.getItem('accessToken');
       
-      await axios.post('http://127.0.0.1:8000/api/notification/', notificationForm, {
+      await axios.post(`${API_BASE_URL}/api/notification/`, notificationForm, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -163,7 +166,7 @@ export default function AdminPanel() {
     
     try {
       const token = localStorage.getItem('accessToken');
-      await axios.delete(`http://127.0.0.1:8000/api/competitions/${id}/`, {
+      await axios.delete(`${API_BASE_URL}/api/competitions/${id}/`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
